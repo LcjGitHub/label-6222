@@ -67,17 +67,53 @@ def seed_tags(conn) -> None:
     for name in PRESET_TAGS:
         conn.execute("INSERT INTO tags (name) VALUES (?)", (name,))
     conn.commit()
+    print(f"已插入 {len(PRESET_TAGS)} 条预设标签。")
+
+
+def migrate_issue_tags(conn) -> None:
+    """迁移：已有期号但 issue_tags 为空时，为五条初始期号写入标签绑定。"""
+    issue_count = conn.execute("SELECT COUNT(*) FROM issues").fetchone()[0]
+    tag_count = conn.execute("SELECT COUNT(*) FROM issue_tags").fetchone()[0]
+
+    if issue_count == 0 or tag_count > 0:
+        return
+
+    print("检测到已有期号但无标签绑定，正在迁移标签数据…")
+
+    tag_map = {
+        row["name"]: row["id"] for row in conn.execute("SELECT * FROM tags").fetchall()
+    }
+
+    issues = conn.execute(
+        "SELECT * FROM issues ORDER BY id ASC LIMIT ?", (len(SEED_DATA),)
+    ).fetchall()
+
+    bound_count = 0
+    for issue, seed_item in zip(issues, SEED_DATA):
+        tag_names = seed_item.get("tag_names", [])
+        for name in tag_names:
+            tag_id = tag_map.get(name)
+            if tag_id:
+                conn.execute(
+                    "INSERT OR IGNORE INTO issue_tags (issue_id, tag_id) VALUES (?, ?)",
+                    (issue["id"], tag_id),
+                )
+                bound_count += 1
+
+    conn.commit()
+    print(f"已为 {len(issues)} 条期号绑定 {bound_count} 个标签。")
 
 
 def seed() -> None:
-    """写入种子数据（仅在 issues 表为空时插入）。"""
+    """写入种子数据（仅在 issues 表为空时插入），并在需要时迁移标签。"""
     init_db()
     with get_connection() as conn:
         seed_tags(conn)
 
         count = conn.execute("SELECT COUNT(*) FROM issues").fetchone()[0]
         if count > 0:
-            print(f"数据库已有 {count} 条记录，跳过 seed。")
+            print(f"数据库已有 {count} 条期号记录。")
+            migrate_issue_tags(conn)
             return
 
         tag_map = {

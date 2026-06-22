@@ -31,3 +31,17 @@ export interface DesignerSummary {
   issue_count: number;
   latest_year: number;
 }
+
+/** 年份收录数量 */
+export interface YearlyCount {
+  year: number;
+  count: number;
+}
+
+/** 数据概览统计 */
+export interface Statistics {
+  total_issues: number;
+  total_magazines: number;
+  total_designers: number;
+  yearly_counts: YearlyCount[];
+}

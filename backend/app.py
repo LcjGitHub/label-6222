@@ -102,6 +102,34 @@ def list_tags():
     return jsonify([row_to_dict(r) for r in rows])
 
 
+@app.route("/api/statistics", methods=["GET"])
+def get_statistics():
+    """获取数据概览统计信息。"""
+    with get_connection() as conn:
+        total_issues = conn.execute("SELECT COUNT(*) AS cnt FROM issues").fetchone()["cnt"]
+        total_magazines = conn.execute(
+            "SELECT COUNT(DISTINCT magazine_name) AS cnt FROM issues"
+        ).fetchone()["cnt"]
+        total_designers = conn.execute(
+            "SELECT COUNT(DISTINCT designer) AS cnt FROM issues"
+        ).fetchone()["cnt"]
+        yearly_rows = conn.execute(
+            """
+            SELECT year, COUNT(*) AS count
+            FROM issues
+            GROUP BY year
+            ORDER BY year DESC
+            """
+        ).fetchall()
+    yearly_counts = [{"year": row["year"], "count": row["count"]} for row in yearly_rows]
+    return jsonify({
+        "total_issues": total_issues,
+        "total_magazines": total_magazines,
+        "total_designers": total_designers,
+        "yearly_counts": yearly_counts,
+    })
+
+
 @app.route("/api/designers/summary", methods=["GET"])
 def designers_summary():
     with get_connection() as conn:

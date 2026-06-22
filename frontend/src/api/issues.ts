@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Issue, IssueInput, Tag, DesignerSummary } from "@/types/issue";
+import type { Issue, IssueInput, Tag, DesignerSummary, Statistics } from "@/types/issue";
 
 const api = axios.create({
   baseURL: "/api",
@@ -87,5 +87,13 @@ export async function deleteIssue(id: number): Promise<void> {
 
 export async function fetchDesignerSummary(): Promise<DesignerSummary[]> {
   const { data } = await api.get<DesignerSummary[]>("/designers/summary");
+  return data;
+}
+
+/**
+ * 获取数据概览统计信息。
+ */
+export async function fetchStatistics(): Promise<Statistics> {
+  const { data } = await api.get<Statistics>("/statistics");
   return data;
 }

@@ -14,15 +14,35 @@ export async function fetchTags(): Promise<Tag[]> {
   return data;
 }
 
+export interface FetchIssuesParams {
+  search?: string;
+  year?: number | string;
+  designer?: string;
+}
+
 /**
- * 获取全部期号列表。
+ * 获取全部期号列表，支持搜索和筛选。
  */
-export async function fetchIssues(designer?: string): Promise<Issue[]> {
-  const params: Record<string, string> = {};
-  if (designer) {
-    params.designer = designer;
+export async function fetchIssues(params?: FetchIssuesParams): Promise<Issue[]> {
+  const queryParams: Record<string, string | number> = {};
+  if (params?.search) {
+    queryParams.search = params.search;
   }
-  const { data } = await api.get<Issue[]>("/issues", { params });
+  if (params?.year) {
+    queryParams.year = params.year;
+  }
+  if (params?.designer) {
+    queryParams.designer = params.designer;
+  }
+  const { data } = await api.get<Issue[]>("/issues", { params: queryParams });
+  return data;
+}
+
+/**
+ * 获取所有已收录的年份列表。
+ */
+export async function fetchIssueYears(): Promise<number[]> {
+  const { data } = await api.get<number[]>("/issues/years");
   return data;
 }
 

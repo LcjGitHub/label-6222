@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Users, ImageIcon } from "lucide-react";
-import { useState } from "react";
+import { Plus, Users, ImageIcon, SearchX } from "lucide-react";
+import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { createIssue, deleteIssue, fetchIssues } from "@/api/issues";
+import { createIssue, deleteIssue, fetchIssues, fetchIssueYears } from "@/api/issues";
 import { IssueForm } from "@/components/IssueForm";
+import { IssueFilterBar } from "@/components/IssueFilterBar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,18 +16,84 @@ import {
 } from "@/components/ui/card";
 
 /**
- * 期号列表页：展示全部杂志封面研究条目，支持新建与删除。
+ * 期号列表页：展示全部杂志封面研究条目，支持搜索、筛选、新建与删除。
  */
 export function IssueListPage() {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const designerFilter = searchParams.get("designer") || "";
+  const searchQuery = searchParams.get("search") || "";
+  const yearQuery = searchParams.get("year") || "";
+
+  const [searchInput, setSearchInput] = useState(searchQuery);
+  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchInput);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  useEffect(() => {
+    const nextParams = new URLSearchParams(searchParams);
+    if (debouncedSearch) {
+      nextParams.set("search", debouncedSearch);
+    } else {
+      nextParams.delete("search");
+    }
+    if (yearQuery) {
+      nextParams.set("year", yearQuery);
+    } else {
+      nextParams.delete("year");
+    }
+    if (designerFilter) {
+      nextParams.set("designer", designerFilter);
+    } else {
+      nextParams.delete("designer");
+    }
+    setSearchParams(nextParams, { replace: true });
+  }, [debouncedSearch, yearQuery, designerFilter]);
+
+  const { data: years = [] } = useQuery({
+    queryKey: ["issue-years"],
+    queryFn: fetchIssueYears,
+  });
 
   const { data: issues = [], isLoading, error } = useQuery({
-    queryKey: ["issues", designerFilter],
-    queryFn: () => fetchIssues(designerFilter || undefined),
+    queryKey: ["issues", debouncedSearch, yearQuery, designerFilter],
+    queryFn: () =>
+      fetchIssues({
+        search: debouncedSearch || undefined,
+        year: yearQuery || undefined,
+        designer: designerFilter || undefined,
+      }),
   });
+
+  const hasActiveFilters =
+    debouncedSearch !== "" || yearQuery !== "" || designerFilter !== "";
+
+  const handleSearchChange = (value: string) => {
+    setSearchInput(value);
+  };
+
+  const handleYearChange = (value: string) => {
+    const nextParams = new URLSearchParams(searchParams);
+    if (value) {
+      nextParams.set("year", value);
+    } else {
+      nextParams.delete("year");
+    }
+    setSearchParams(nextParams);
+  };
+
+  const handleClearFilters = () => {
+    setSearchInput("");
+    setDebouncedSearch("");
+    const nextParams = new URLSearchParams();
+    setSearchParams(nextParams);
+  };
 
   const createMutation = useMutation({
     mutationFn: createIssue,
@@ -92,6 +159,15 @@ export function IssueListPage() {
         </div>
       </header>
 
+      <IssueFilterBar
+        search={searchInput}
+        year={yearQuery}
+        years={years}
+        onSearchChange={handleSearchChange}
+        onYearChange={handleYearChange}
+        onClear={handleClearFilters}
+      />
+
       {showForm && (
         <Card className="mb-8">
           <CardHeader>
@@ -120,11 +196,26 @@ export function IssueListPage() {
       )}
 
       {!isLoading && !error && issues.length === 0 && (
-        <p className="text-center text-muted-foreground">
-          {designerFilter
-            ? "该设计师暂无收录期号，可点击清除筛选查看全部"
-            : "暂无数据，点击上方按钮新增。"}
-        </p>
+        <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+            <SearchX className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <div>
+            <p className="text-base font-medium">
+              {hasActiveFilters ? "未找到匹配的结果" : "暂无数据"}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {hasActiveFilters
+                ? "尝试更换关键词、调整年份筛选或清除筛选条件"
+                : "点击上方「新增期号」按钮开始收录"}
+            </p>
+          </div>
+          {hasActiveFilters && (
+            <Button variant="outline" size="sm" onClick={handleClearFilters}>
+              清除全部筛选
+            </Button>
+          )}
+        </div>
       )}
 
       <ul className="grid gap-4">

@@ -119,20 +119,50 @@ def designers_summary():
     return jsonify([row_to_dict(r) for r in rows])
 
 
+@app.route("/api/issues/years", methods=["GET"])
+def list_issue_years():
+    """获取所有已收录的年份列表（降序）。"""
+    with get_connection() as conn:
+        rows = conn.execute(
+            "SELECT DISTINCT year FROM issues ORDER BY year DESC"
+        ).fetchall()
+    return jsonify([row["year"] for row in rows])
+
+
 @app.route("/api/issues", methods=["GET"])
 def list_issues():
-    """获取全部期号列表（含标签），支持按设计师姓名筛选。"""
+    """获取全部期号列表（含标签），支持关键词搜索与年份筛选。"""
+    search = request.args.get("search", "").strip()
+    year_str = request.args.get("year", "").strip()
     designer = request.args.get("designer", "").strip()
+
+    conditions = []
+    params = []
+
+    if search:
+        search_pattern = f"%{search}%"
+        conditions.append("(magazine_name LIKE ? OR designer LIKE ?)")
+        params.extend([search_pattern, search_pattern])
+
+    if year_str:
+        try:
+            year = int(year_str)
+            conditions.append("year = ?")
+            params.append(year)
+        except (TypeError, ValueError):
+            pass
+
+    if designer:
+        conditions.append("designer = ?")
+        params.append(designer)
+
+    where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+
     with get_connection() as conn:
-        if designer:
-            rows = conn.execute(
-                "SELECT * FROM issues WHERE designer = ? ORDER BY year DESC, id DESC",
-                (designer,),
-            ).fetchall()
-        else:
-            rows = conn.execute(
-                "SELECT * FROM issues ORDER BY year DESC, id DESC"
-            ).fetchall()
+        rows = conn.execute(
+            f"SELECT * FROM issues {where_clause} ORDER BY year DESC, id DESC",
+            tuple(params),
+        ).fetchall()
         result = [issue_with_tags(conn, r) for r in rows]
     return jsonify(result)
 

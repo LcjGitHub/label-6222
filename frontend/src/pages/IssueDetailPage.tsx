@@ -36,6 +36,7 @@ export function IssueDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["issues"] });
       queryClient.invalidateQueries({ queryKey: ["issues", issueId] });
+      queryClient.invalidateQueries({ queryKey: ["designers-summary"] });
       setEditing(false);
     },
   });
@@ -44,6 +45,7 @@ export function IssueDetailPage() {
     mutationFn: () => deleteIssue(issueId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["issues"] });
+      queryClient.invalidateQueries({ queryKey: ["designers-summary"] });
       navigate("/");
     },
   });

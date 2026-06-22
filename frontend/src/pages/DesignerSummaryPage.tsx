@@ -29,7 +29,7 @@ export function DesignerSummaryPage() {
 
       <header className="mb-10">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-          Designer Summary
+          设计师汇总统计
         </p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight">
           设计师汇总

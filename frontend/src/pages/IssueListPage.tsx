@@ -32,6 +32,7 @@ export function IssueListPage() {
     mutationFn: createIssue,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["issues"] });
+      queryClient.invalidateQueries({ queryKey: ["designers-summary"] });
       setShowForm(false);
     },
   });
@@ -40,6 +41,7 @@ export function IssueListPage() {
     mutationFn: deleteIssue,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["issues"] });
+      queryClient.invalidateQueries({ queryKey: ["designers-summary"] });
     },
   });
 
@@ -113,7 +115,11 @@ export function IssueListPage() {
       )}
 
       {!isLoading && !error && issues.length === 0 && (
-        <p className="text-center text-muted-foreground">暂无数据，点击上方按钮新增。</p>
+        <p className="text-center text-muted-foreground">
+          {designerFilter
+            ? "该设计师暂无收录期号，可点击清除筛选查看全部"
+            : "暂无数据，点击上方按钮新增。"}
+        </p>
       )}
 
       <ul className="grid gap-4">

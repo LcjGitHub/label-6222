@@ -41,6 +41,21 @@ export function IssueDetailCard({ issue, onEdit, onDelete }: IssueDetailCardProp
       </CardHeader>
 
       <CardContent className="space-y-6 pt-6">
+        {issue.tags && issue.tags.length > 0 && (
+          <section>
+            <h4 className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              字体分类
+            </h4>
+            <div className="flex flex-wrap gap-2">
+              {issue.tags.map((tag) => (
+                <Badge key={tag.id} variant="default">
+                  {tag.name}
+                </Badge>
+              ))}
+            </div>
+          </section>
+        )}
+
         <section>
           <h4 className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             字体描述

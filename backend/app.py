@@ -23,6 +23,42 @@ def row_to_dict(row) -> dict:
     return dict(row)
 
 
+def get_issue_tags(conn, issue_id: int) -> list[dict]:
+    """获取指定期号关联的标签列表。"""
+    rows = conn.execute(
+        """
+        SELECT t.* FROM tags t
+        JOIN issue_tags it ON t.id = it.tag_id
+        WHERE it.issue_id = ?
+        ORDER BY t.id ASC
+        """,
+        (issue_id,),
+    ).fetchall()
+    return [row_to_dict(r) for r in rows]
+
+
+def issue_with_tags(conn, row) -> dict:
+    """将期号行转为包含标签字段的字典。"""
+    data = row_to_dict(row)
+    data["tags"] = get_issue_tags(conn, data["id"])
+    return data
+
+
+def sync_issue_tags(conn, issue_id: int, tag_ids: list[int] | None) -> None:
+    """同步期号的标签关联（先删除再插入）。"""
+    if tag_ids is None:
+        return
+    conn.execute("DELETE FROM issue_tags WHERE issue_id = ?", (issue_id,))
+    seen = set()
+    for tag_id in tag_ids:
+        if tag_id not in seen:
+            seen.add(tag_id)
+            conn.execute(
+                "INSERT OR IGNORE INTO issue_tags (issue_id, tag_id) VALUES (?, ?)",
+                (issue_id, tag_id),
+            )
+
+
 def validate_payload(data: dict, partial: bool = False) -> tuple[dict | None, str | None]:
     """
      * 校验请求体字段。
@@ -58,36 +94,47 @@ def health():
     return jsonify({"status": "ok"})
 
 
+@app.route("/api/tags", methods=["GET"])
+def list_tags():
+    """获取全部标签列表。"""
+    with get_connection() as conn:
+        rows = conn.execute("SELECT * FROM tags ORDER BY id ASC").fetchall()
+    return jsonify([row_to_dict(r) for r in rows])
+
+
 @app.route("/api/issues", methods=["GET"])
 def list_issues():
-    """获取全部期号列表。"""
+    """获取全部期号列表（含标签）。"""
     with get_connection() as conn:
         rows = conn.execute(
             "SELECT * FROM issues ORDER BY year DESC, id DESC"
         ).fetchall()
-    return jsonify([row_to_dict(r) for r in rows])
+        result = [issue_with_tags(conn, r) for r in rows]
+    return jsonify(result)
 
 
 @app.route("/api/issues/<int:issue_id>", methods=["GET"])
 def get_issue(issue_id: int):
-    """获取单条期号详情。"""
+    """获取单条期号详情（含标签）。"""
     with get_connection() as conn:
         row = conn.execute(
             "SELECT * FROM issues WHERE id = ?", (issue_id,)
         ).fetchone()
-    if row is None:
-        return jsonify({"error": "未找到该期号"}), 404
-    return jsonify(row_to_dict(row))
+        if row is None:
+            return jsonify({"error": "未找到该期号"}), 404
+        result = issue_with_tags(conn, row)
+    return jsonify(result)
 
 
 @app.route("/api/issues", methods=["POST"])
 def create_issue():
-    """创建新期号。"""
+    """创建新期号（含标签）。"""
     data, err = validate_payload(request.get_json(silent=True) or {})
     if err:
         return jsonify({"error": err}), 400
 
     link = (data.get("link") or "").strip() or None
+    tag_ids = data.get("tag_ids") or []
 
     with get_connection() as conn:
         cursor = conn.execute(
@@ -105,17 +152,20 @@ def create_issue():
                 link,
             ),
         )
+        issue_id = cursor.lastrowid
+        sync_issue_tags(conn, issue_id, tag_ids)
         conn.commit()
         row = conn.execute(
-            "SELECT * FROM issues WHERE id = ?", (cursor.lastrowid,)
+            "SELECT * FROM issues WHERE id = ?", (issue_id,)
         ).fetchone()
+        result = issue_with_tags(conn, row)
 
-    return jsonify(row_to_dict(row)), 201
+    return jsonify(result), 201
 
 
 @app.route("/api/issues/<int:issue_id>", methods=["PUT"])
 def update_issue(issue_id: int):
-    """更新期号信息。"""
+    """更新期号信息（含标签）。"""
     data, err = validate_payload(request.get_json(silent=True) or {}, partial=True)
     if err:
         return jsonify({"error": err}), 400
@@ -154,12 +204,17 @@ def update_issue(issue_id: int):
                 issue_id,
             ),
         )
+
+        if "tag_ids" in data:
+            sync_issue_tags(conn, issue_id, data.get("tag_ids") or [])
+
         conn.commit()
         row = conn.execute(
             "SELECT * FROM issues WHERE id = ?", (issue_id,)
         ).fetchone()
+        result = issue_with_tags(conn, row)
 
-    return jsonify(row_to_dict(row))
+    return jsonify(result)
 
 
 @app.route("/api/issues/<int:issue_id>", methods=["DELETE"])

@@ -1,12 +1,15 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { fetchTags } from "@/api/issues";
 import type { IssueInput } from "@/types/issue";
+import { cn } from "@/lib/utils";
 
 interface IssueFormProps {
-  initial?: Partial<IssueInput>;
+  initial?: Partial<IssueInput> & { tags?: { id: number; name: string }[] };
   onSubmit: (data: IssueInput) => void;
   onCancel: () => void;
   isSubmitting?: boolean;
@@ -19,10 +22,11 @@ const EMPTY: IssueInput = {
   font_description: "",
   designer: "",
   link: "",
+  tag_ids: [],
 };
 
 /**
- * 期号创建/编辑表单。
+ * 期号创建/编辑表单（含标签多选）。
  */
 export function IssueForm({
   initial,
@@ -30,17 +34,36 @@ export function IssueForm({
   onCancel,
   isSubmitting,
 }: IssueFormProps) {
+  const { data: tags = [] } = useQuery({
+    queryKey: ["tags"],
+    queryFn: fetchTags,
+  });
+
+  const initialTagIds = initial?.tags
+    ? initial.tags.map((t) => t.id)
+    : initial?.tag_ids ?? [];
+
   const [form, setForm] = useState<IssueInput>({
     ...EMPTY,
     ...initial,
     link: initial?.link ?? "",
+    tag_ids: initialTagIds,
   });
 
   const handleChange = (
     field: keyof IssueInput,
-    value: string | number
+    value: string | number | number[]
   ) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const toggleTag = (tagId: number) => {
+    setForm((prev) => ({
+      ...prev,
+      tag_ids: prev.tag_ids.includes(tagId)
+        ? prev.tag_ids.filter((id) => id !== tagId)
+        : [...prev.tag_ids, tagId],
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -87,6 +110,33 @@ export function IssueForm({
             onChange={(e) => handleChange("designer", e.target.value)}
             required
           />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>字体分类标签</Label>
+        <div className="flex flex-wrap gap-2">
+          {tags.map((tag) => {
+            const selected = form.tag_ids.includes(tag.id);
+            return (
+              <button
+                key={tag.id}
+                type="button"
+                onClick={() => toggleTag(tag.id)}
+                className={cn(
+                  "cursor-pointer rounded-full border px-3 py-1 text-xs font-semibold transition-colors",
+                  selected
+                    ? "border-transparent bg-primary text-primary-foreground"
+                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                )}
+              >
+                {tag.name}
+              </button>
+            );
+          })}
+          {tags.length === 0 && (
+            <span className="text-sm text-muted-foreground">加载标签中…</span>
+          )}
         </div>
       </div>
 

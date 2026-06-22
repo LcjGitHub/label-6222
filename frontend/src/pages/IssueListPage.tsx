@@ -109,6 +109,15 @@ export function IssueListPage() {
                       <Badge variant="outline">{issue.year}</Badge>
                       <span className="text-sm">{issue.designer}</span>
                     </CardDescription>
+                    {issue.tags && issue.tags.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {issue.tags.map((tag) => (
+                          <Badge key={tag.id} variant="default" className="text-[10px]">
+                            {tag.name}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <Button
                     variant="ghost"

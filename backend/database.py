@@ -19,7 +19,7 @@ def get_connection() -> sqlite3.Connection:
 
 
 def init_db() -> None:
-    """创建 issues 表（若不存在）。"""
+    """创建 issues、tags、issue_tags 表（若不存在）。"""
     with get_connection() as conn:
         conn.execute(
             """
@@ -33,6 +33,26 @@ def init_db() -> None:
                 link TEXT,
                 created_at TEXT DEFAULT (datetime('now')),
                 updated_at TEXT DEFAULT (datetime('now'))
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS tags (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL UNIQUE,
+                created_at TEXT DEFAULT (datetime('now'))
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS issue_tags (
+                issue_id INTEGER NOT NULL,
+                tag_id INTEGER NOT NULL,
+                PRIMARY KEY (issue_id, tag_id),
+                FOREIGN KEY (issue_id) REFERENCES issues(id) ON DELETE CASCADE,
+                FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
             )
             """
         )

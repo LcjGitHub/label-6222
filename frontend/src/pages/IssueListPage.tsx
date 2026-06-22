@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
+import { Plus, Users } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { createIssue, deleteIssue, fetchIssues } from "@/api/issues";
 import { IssueForm } from "@/components/IssueForm";
 import { Badge } from "@/components/ui/badge";
@@ -20,10 +20,12 @@ import {
 export function IssueListPage() {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const designerFilter = searchParams.get("designer") || "";
 
   const { data: issues = [], isLoading, error } = useQuery({
-    queryKey: ["issues"],
-    queryFn: fetchIssues,
+    queryKey: ["issues", designerFilter],
+    queryFn: () => fetchIssues(designerFilter || undefined),
   });
 
   const createMutation = useMutation({
@@ -54,11 +56,34 @@ export function IssueListPage() {
           <p className="mt-2 max-w-xl text-muted-foreground">
             收录独立杂志封面字体分析，记录设计师、期号与字体特征描述。
           </p>
+          {designerFilter && (
+            <div className="mt-3 flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">
+                筛选设计师：
+              </span>
+              <Badge variant="secondary">{designerFilter}</Badge>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSearchParams({})}
+              >
+                清除筛选
+              </Button>
+            </div>
+          )}
         </div>
-        <Button onClick={() => setShowForm((v) => !v)}>
-          <Plus className="h-4 w-4" />
-          新增期号
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" asChild>
+            <Link to="/designers">
+              <Users className="h-4 w-4" />
+              设计师汇总
+            </Link>
+          </Button>
+          <Button onClick={() => setShowForm((v) => !v)}>
+            <Plus className="h-4 w-4" />
+            新增期号
+          </Button>
+        </div>
       </header>
 
       {showForm && (

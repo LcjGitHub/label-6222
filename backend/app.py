@@ -102,13 +102,37 @@ def list_tags():
     return jsonify([row_to_dict(r) for r in rows])
 
 
-@app.route("/api/issues", methods=["GET"])
-def list_issues():
-    """获取全部期号列表（含标签）。"""
+@app.route("/api/designers/summary", methods=["GET"])
+def designers_summary():
     with get_connection() as conn:
         rows = conn.execute(
-            "SELECT * FROM issues ORDER BY year DESC, id DESC"
+            """
+            SELECT
+                designer   AS name,
+                COUNT(*)   AS issue_count,
+                MAX(year)  AS latest_year
+            FROM issues
+            GROUP BY designer
+            ORDER BY issue_count DESC, name ASC
+            """
         ).fetchall()
+    return jsonify([row_to_dict(r) for r in rows])
+
+
+@app.route("/api/issues", methods=["GET"])
+def list_issues():
+    """获取全部期号列表（含标签），支持按设计师姓名筛选。"""
+    designer = request.args.get("designer", "").strip()
+    with get_connection() as conn:
+        if designer:
+            rows = conn.execute(
+                "SELECT * FROM issues WHERE designer = ? ORDER BY year DESC, id DESC",
+                (designer,),
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                "SELECT * FROM issues ORDER BY year DESC, id DESC"
+            ).fetchall()
         result = [issue_with_tags(conn, r) for r in rows]
     return jsonify(result)
 

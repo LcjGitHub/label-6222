@@ -23,3 +23,10 @@ export interface Issue {
 export type IssueInput = Omit<Issue, "id" | "created_at" | "updated_at" | "tags"> & {
   tag_ids: number[];
 };
+
+/** 设计师汇总统计 */
+export interface DesignerSummary {
+  name: string;
+  issue_count: number;
+  latest_year: number;
+}

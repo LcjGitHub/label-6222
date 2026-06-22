@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Issue, IssueInput, Tag } from "@/types/issue";
+import type { Issue, IssueInput, Tag, DesignerSummary } from "@/types/issue";
 
 const api = axios.create({
   baseURL: "/api",
@@ -17,8 +17,12 @@ export async function fetchTags(): Promise<Tag[]> {
 /**
  * 获取全部期号列表。
  */
-export async function fetchIssues(): Promise<Issue[]> {
-  const { data } = await api.get<Issue[]>("/issues");
+export async function fetchIssues(designer?: string): Promise<Issue[]> {
+  const params: Record<string, string> = {};
+  if (designer) {
+    params.designer = designer;
+  }
+  const { data } = await api.get<Issue[]>("/issues", { params });
   return data;
 }
 
@@ -59,4 +63,9 @@ export async function updateIssue(
  */
 export async function deleteIssue(id: number): Promise<void> {
   await api.delete(`/issues/${id}`);
+}
+
+export async function fetchDesignerSummary(): Promise<DesignerSummary[]> {
+  const { data } = await api.get<DesignerSummary[]>("/designers/summary");
+  return data;
 }

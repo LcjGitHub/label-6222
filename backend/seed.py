@@ -18,6 +18,7 @@ SEED_DATA = [
         "font_description": "封面主标题采用定制无衬线体，字重极细，字距加宽，呈现北欧极简气质。副标题使用 Grotesk 变体。",
         "designer": "Studio Temp",
         "link": "https://example.com/brilliant-12",
+        "cover_image": "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=minimalist%20magazine%20cover%2C%20white%20background%2C%20thin%20sans-serif%20title%2C%20scandinavian%20design&image_size=portrait_4_3",
         "tag_names": ["无衬线"],
     },
     {
@@ -27,6 +28,7 @@ SEED_DATA = [
         "font_description": "封面使用 Didot 风格高对比衬线体，大写排版，行距紧凑，强调编辑类杂志的典雅感。",
         "designer": "Rosa Park",
         "link": "https://example.com/cereal-21",
+        "cover_image": "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=elegant%20editorial%20magazine%20cover%2C%20Didot%20serif%20typeface%2C%20minimal%20photography&image_size=portrait_4_3",
         "tag_names": ["衬线", "展示体"],
     },
     {
@@ -36,6 +38,7 @@ SEED_DATA = [
         "font_description": "手写风格 Display 字体与 Helvetica Neue 混排，封面标题倾斜放置，营造居家生活杂志的随性感。",
         "designer": "Apartamento Studio",
         "link": "https://example.com/apartamento-32",
+        "cover_image": "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=indie%20lifestyle%20magazine%20cover%2C%20handwritten%20title%2C%20casual%20interior%20photography&image_size=portrait_4_3",
         "tag_names": ["手写", "无衬线", "展示体"],
     },
     {
@@ -45,6 +48,7 @@ SEED_DATA = [
         "font_description": "封面采用 Caslon 衍生衬线体，小字号全大写，留白比例极高，字体与摄影形成呼吸感。",
         "designer": "John Doe Office",
         "link": "https://example.com/kinfolk-48",
+        "cover_image": "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=quiet%20magazine%20cover%2C%20Caslon%20serif%20small%20caps%2C%20extreme%20whitespace%2C%20nature%20photography&image_size=portrait_4_3",
         "tag_names": ["衬线"],
     },
     {
@@ -54,6 +58,7 @@ SEED_DATA = [
         "font_description": "封面使用 Monocle 专属 Sans 字体，几何感强，红色块与白色字形成品牌识别，期号以等宽数字呈现。",
         "designer": "Tyler Brûlé",
         "link": "https://example.com/monocle-156",
+        "cover_image": "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Monocle%20style%20magazine%20cover%2C%20geometric%20sans-serif%2C%20red%20block%20white%20text%2C%20global%20affairs&image_size=portrait_4_3",
         "tag_names": ["无衬线", "等宽"],
     },
 ]
@@ -125,9 +130,9 @@ def seed() -> None:
             cursor = conn.execute(
                 """
                 INSERT INTO issues
-                    (magazine_name, issue_number, year, font_description, designer, link)
+                    (magazine_name, issue_number, year, font_description, designer, link, cover_image)
                 VALUES
-                    (:magazine_name, :issue_number, :year, :font_description, :designer, :link)
+                    (:magazine_name, :issue_number, :year, :font_description, :designer, :link, :cover_image)
                 """,
                 item,
             )

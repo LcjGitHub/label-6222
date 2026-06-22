@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Users } from "lucide-react";
+import { Plus, Users, ImageIcon } from "lucide-react";
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { createIssue, deleteIssue, fetchIssues } from "@/api/issues";
@@ -126,57 +126,82 @@ export function IssueListPage() {
         {issues.map((issue) => (
           <li key={issue.id}>
             <Card className="transition-shadow hover:shadow-md">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <Link
-                      to={`/issues/${issue.id}`}
-                      className="hover:underline"
-                    >
-                      <CardTitle>{issue.magazine_name}</CardTitle>
-                    </Link>
-                    <CardDescription className="mt-2 flex flex-wrap gap-2">
-                      <Badge variant="secondary">{issue.issue_number}</Badge>
-                      <Badge variant="outline">{issue.year}</Badge>
-                      <span className="text-sm">{issue.designer}</span>
-                    </CardDescription>
-                    {issue.tags && issue.tags.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        {issue.tags.map((tag) => (
-                          <Badge key={tag.id} variant="default" className="text-[10px]">
-                            {tag.name}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    asChild
+              <div className="flex">
+                <div className="flex h-32 w-24 flex-shrink-0 items-center justify-center overflow-hidden rounded-l-lg bg-muted">
+                  {issue.cover_image ? (
+                    <img
+                      src={issue.cover_image}
+                      alt={`${issue.magazine_name} 封面`}
+                      className="h-full w-full object-cover"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        target.style.display = "none";
+                        const placeholder = target.nextElementSibling as HTMLElement;
+                        if (placeholder) placeholder.style.display = "flex";
+                      }}
+                    />
+                  ) : null}
+                  <div
+                    className={`flex h-full w-full flex-col items-center justify-center gap-1 text-muted-foreground ${issue.cover_image ? "hidden" : ""}`}
                   >
-                    <Link to={`/issues/${issue.id}`}>查看详情</Link>
-                  </Button>
+                    <ImageIcon className="h-6 w-6" />
+                    <span className="text-[10px]">无封面</span>
+                  </div>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <p className="line-clamp-2 text-sm text-muted-foreground">
-                  {issue.font_description}
-                </p>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="mt-4"
-                  onClick={() => {
-                    if (window.confirm(`确定删除「${issue.magazine_name}」？`)) {
-                      deleteMutation.mutate(issue.id);
-                    }
-                  }}
-                  disabled={deleteMutation.isPending}
-                >
-                  删除
-                </Button>
-              </CardContent>
+                <div className="flex-1 min-w-0">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <Link
+                          to={`/issues/${issue.id}`}
+                          className="hover:underline"
+                        >
+                          <CardTitle>{issue.magazine_name}</CardTitle>
+                        </Link>
+                        <CardDescription className="mt-2 flex flex-wrap gap-2">
+                          <Badge variant="secondary">{issue.issue_number}</Badge>
+                          <Badge variant="outline">{issue.year}</Badge>
+                          <span className="text-sm">{issue.designer}</span>
+                        </CardDescription>
+                        {issue.tags && issue.tags.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {issue.tags.map((tag) => (
+                              <Badge key={tag.id} variant="default" className="text-[10px]">
+                                {tag.name}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        asChild
+                      >
+                        <Link to={`/issues/${issue.id}`}>查看详情</Link>
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="line-clamp-2 text-sm text-muted-foreground">
+                      {issue.font_description}
+                    </p>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="mt-4"
+                      onClick={() => {
+                        if (window.confirm(`确定删除「${issue.magazine_name}」？`)) {
+                          deleteMutation.mutate(issue.id);
+                        }
+                      }}
+                      disabled={deleteMutation.isPending}
+                    >
+                      删除
+                    </Button>
+                  </CardContent>
+                </div>
+              </div>
             </Card>
           </li>
         ))}

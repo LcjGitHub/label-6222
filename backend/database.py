@@ -31,6 +31,7 @@ def init_db() -> None:
                 font_description TEXT NOT NULL,
                 designer TEXT NOT NULL,
                 link TEXT,
+                cover_image TEXT,
                 created_at TEXT DEFAULT (datetime('now')),
                 updated_at TEXT DEFAULT (datetime('now'))
             )

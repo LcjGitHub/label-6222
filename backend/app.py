@@ -158,14 +158,15 @@ def create_issue():
         return jsonify({"error": err}), 400
 
     link = (data.get("link") or "").strip() or None
+    cover_image = (data.get("cover_image") or "").strip() or None
     tag_ids = data.get("tag_ids") or []
 
     with get_connection() as conn:
         cursor = conn.execute(
             """
             INSERT INTO issues
-                (magazine_name, issue_number, year, font_description, designer, link)
-            VALUES (?, ?, ?, ?, ?, ?)
+                (magazine_name, issue_number, year, font_description, designer, link, cover_image)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 data["magazine_name"].strip(),
@@ -174,6 +175,7 @@ def create_issue():
                 data["font_description"].strip(),
                 data["designer"].strip(),
                 link,
+                cover_image,
             ),
         )
         issue_id = cursor.lastrowid
@@ -205,6 +207,8 @@ def update_issue(issue_id: int):
         merged.update(data)
         if "link" in data:
             merged["link"] = (data.get("link") or "").strip() or None
+        if "cover_image" in data:
+            merged["cover_image"] = (data.get("cover_image") or "").strip() or None
 
         conn.execute(
             """
@@ -215,6 +219,7 @@ def update_issue(issue_id: int):
                 font_description = ?,
                 designer = ?,
                 link = ?,
+                cover_image = ?,
                 updated_at = datetime('now')
             WHERE id = ?
             """,
@@ -225,6 +230,7 @@ def update_issue(issue_id: int):
                 str(merged["font_description"]).strip(),
                 str(merged["designer"]).strip(),
                 merged.get("link"),
+                merged.get("cover_image"),
                 issue_id,
             ),
         )

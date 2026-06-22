@@ -14,6 +14,7 @@ export interface Issue {
   font_description: string;
   designer: string;
   link: string | null;
+  cover_image: string | null;
   tags: Tag[];
   created_at?: string;
   updated_at?: string;

@@ -22,6 +22,7 @@ const EMPTY: IssueInput = {
   font_description: "",
   designer: "",
   link: "",
+  cover_image: "",
   tag_ids: [],
 };
 
@@ -47,6 +48,7 @@ export function IssueForm({
     ...EMPTY,
     ...initial,
     link: initial?.link ?? "",
+    cover_image: initial?.cover_image ?? "",
     tag_ids: initialTagIds,
   });
 
@@ -159,6 +161,17 @@ export function IssueForm({
           value={form.link ?? ""}
           onChange={(e) => handleChange("link", e.target.value)}
           placeholder="https://"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="cover_image">封面图片链接（可选）</Label>
+        <Input
+          id="cover_image"
+          type="url"
+          value={form.cover_image ?? ""}
+          onChange={(e) => handleChange("cover_image", e.target.value)}
+          placeholder="https://example.com/cover.jpg"
         />
       </div>
 

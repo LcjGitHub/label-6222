@@ -1,4 +1,5 @@
-import { ExternalLink, Type } from "lucide-react";
+import { useState } from "react";
+import { ExternalLink, Type, ImageIcon } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -23,8 +24,29 @@ interface IssueDetailCardProps {
  * @param props.onDelete - 删除回调
  */
 export function IssueDetailCard({ issue, onEdit, onDelete }: IssueDetailCardProps) {
+  const [coverError, setCoverError] = useState(false);
+
   return (
     <Card className="overflow-hidden">
+      {issue.cover_image && !coverError && (
+        <div className="w-full bg-muted">
+          <img
+            src={issue.cover_image}
+            alt={`${issue.magazine_name} 封面`}
+            className="w-full object-cover"
+            style={{ maxHeight: "480px" }}
+            onError={() => setCoverError(true)}
+          />
+        </div>
+      )}
+      {issue.cover_image && coverError && (
+        <div className="flex h-60 w-full items-center justify-center bg-muted">
+          <div className="flex flex-col items-center gap-2 text-muted-foreground">
+            <ImageIcon className="h-10 w-10" />
+            <span className="text-sm">封面图片加载失败</span>
+          </div>
+        </div>
+      )}
       <CardHeader className="border-b bg-secondary/30">
         <div className="flex items-start justify-between gap-4">
           <div>

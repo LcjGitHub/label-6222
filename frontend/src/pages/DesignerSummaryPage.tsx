@@ -1,9 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, User } from "lucide-react";
+import { User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { fetchDesignerSummary } from "@/api/issues";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -20,13 +19,6 @@ export function DesignerSummaryPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
-      <Button variant="ghost" size="sm" className="mb-6" asChild>
-        <Link to="/">
-          <ArrowLeft className="h-4 w-4" />
-          返回列表
-        </Link>
-      </Button>
-
       <header className="mb-10">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
           设计师汇总统计

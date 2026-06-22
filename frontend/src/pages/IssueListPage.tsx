@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Users, ImageIcon, SearchX } from "lucide-react";
+import { Plus, ImageIcon, SearchX } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { createIssue, deleteIssue, fetchIssues, fetchIssueYears } from "@/api/issues";
@@ -94,6 +94,7 @@ export function IssueListPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["issues"] });
       queryClient.invalidateQueries({ queryKey: ["designers-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["statistics"] });
       setShowForm(false);
     },
   });
@@ -107,6 +108,7 @@ export function IssueListPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["issues"] });
       queryClient.invalidateQueries({ queryKey: ["designers-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["statistics"] });
     },
   });
 
@@ -140,12 +142,6 @@ export function IssueListPage() {
           )}
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" asChild>
-            <Link to="/designers">
-              <Users className="h-4 w-4" />
-              设计师汇总
-            </Link>
-          </Button>
           <Button onClick={() => setShowForm((v) => !v)}>
             <Plus className="h-4 w-4" />
             新增期号

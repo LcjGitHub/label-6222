@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { BookOpen, Users, Layers, Calendar } from "lucide-react";
+import { BookOpen, Users, Layers } from "lucide-react";
 import { fetchStatistics } from "@/api/issues";
 import {
   Card,
@@ -28,12 +28,6 @@ const statCards = [
     icon: Users,
     color: "bg-amber-500/10 text-amber-600",
   },
-  {
-    key: "total_years",
-    label: "覆盖年份",
-    icon: Calendar,
-    color: "bg-rose-500/10 text-rose-600",
-  },
 ] as const;
 
 export function OverviewPage() {
@@ -46,7 +40,7 @@ export function OverviewPage() {
     <div className="mx-auto max-w-5xl px-4 py-10">
       <header className="mb-10">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-          Data Overview
+          数据概览统计
         </p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight">数据概览</h1>
         <p className="mt-2 max-w-xl text-muted-foreground">
@@ -68,13 +62,10 @@ export function OverviewPage() {
         <>
           <section className="mb-12">
             <h2 className="mb-4 text-lg font-semibold">核心指标</h2>
-            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {statCards.map((card) => {
                 const Icon = card.icon;
-                const value =
-                  card.key === "total_years"
-                    ? stats.yearly_counts.length
-                    : stats[card.key as keyof typeof stats] as number;
+                const value = stats[card.key as keyof typeof stats] as number;
                 return (
                   <li key={card.key}>
                     <Card>

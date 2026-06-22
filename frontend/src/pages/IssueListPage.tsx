@@ -37,6 +37,10 @@ export function IssueListPage() {
     },
   });
 
+  const createError = createMutation.error
+    ? (createMutation.error as any)?.response?.data?.error || "保存失败，请稍后重试"
+    : null;
+
   const deleteMutation = useMutation({
     mutationFn: deleteIssue,
     onSuccess: () => {
@@ -99,6 +103,7 @@ export function IssueListPage() {
               onSubmit={(data) => createMutation.mutate(data)}
               onCancel={() => setShowForm(false)}
               isSubmitting={createMutation.isPending}
+              error={createError}
             />
           </CardContent>
         </Card>
@@ -129,24 +134,34 @@ export function IssueListPage() {
               <div className="flex">
                 <div className="flex h-32 w-24 flex-shrink-0 items-center justify-center overflow-hidden rounded-l-lg bg-muted">
                   {issue.cover_image ? (
-                    <img
-                      src={issue.cover_image}
-                      alt={`${issue.magazine_name} 封面`}
-                      className="h-full w-full object-cover"
-                      onError={(e) => {
-                        const target = e.currentTarget;
-                        target.style.display = "none";
-                        const placeholder = target.nextElementSibling as HTMLElement;
-                        if (placeholder) placeholder.style.display = "flex";
-                      }}
-                    />
-                  ) : null}
-                  <div
-                    className={`flex h-full w-full flex-col items-center justify-center gap-1 text-muted-foreground ${issue.cover_image ? "hidden" : ""}`}
-                  >
-                    <ImageIcon className="h-6 w-6" />
-                    <span className="text-[10px]">无封面</span>
-                  </div>
+                    <>
+                      <img
+                        src={issue.cover_image}
+                        alt={`${issue.magazine_name} 封面`}
+                        className="h-full w-full object-cover"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          target.style.display = "none";
+                          const failPlaceholder = target.parentElement?.querySelector(
+                            "[data-placeholder='fail']"
+                          ) as HTMLElement | null;
+                          if (failPlaceholder) failPlaceholder.style.display = "flex";
+                        }}
+                      />
+                      <div
+                        data-placeholder="fail"
+                        className="hidden h-full w-full flex-col items-center justify-center gap-1 text-muted-foreground"
+                      >
+                        <ImageIcon className="h-6 w-6" />
+                        <span className="text-[10px]">封面加载失败</span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex h-full w-full flex-col items-center justify-center gap-1 text-muted-foreground">
+                      <ImageIcon className="h-6 w-6" />
+                      <span className="text-[10px]">无封面</span>
+                    </div>
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <CardHeader className="pb-3">

@@ -41,6 +41,10 @@ export function IssueDetailPage() {
     },
   });
 
+  const updateError = updateMutation.error
+    ? (updateMutation.error as any)?.response?.data?.error || "保存失败，请稍后重试"
+    : null;
+
   const deleteMutation = useMutation({
     mutationFn: () => deleteIssue(issueId),
     onSuccess: () => {
@@ -90,6 +94,7 @@ export function IssueDetailPage() {
               onSubmit={(data) => updateMutation.mutate(data)}
               onCancel={() => setEditing(false)}
               isSubmitting={updateMutation.isPending}
+              error={updateError}
             />
           </CardContent>
         </Card>

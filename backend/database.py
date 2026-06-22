@@ -58,3 +58,15 @@ def init_db() -> None:
             """
         )
         conn.commit()
+        migrate_cover_image_column(conn)
+
+
+def migrate_cover_image_column(conn: sqlite3.Connection) -> None:
+    """迁移：若 issues 表缺少 cover_image 列，则自动添加。"""
+    cursor = conn.execute("PRAGMA table_info(issues)")
+    columns = [row[1] for row in cursor.fetchall()]
+    if "cover_image" not in columns:
+        print("检测到 issues 表缺少 cover_image 列，正在迁移…")
+        conn.execute("ALTER TABLE issues ADD COLUMN cover_image TEXT")
+        conn.commit()
+        print("已为 issues 表添加 cover_image 列。")

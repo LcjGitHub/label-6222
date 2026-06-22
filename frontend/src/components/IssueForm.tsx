@@ -13,6 +13,7 @@ interface IssueFormProps {
   onSubmit: (data: IssueInput) => void;
   onCancel: () => void;
   isSubmitting?: boolean;
+  error?: string | null;
 }
 
 const EMPTY: IssueInput = {
@@ -34,6 +35,7 @@ export function IssueForm({
   onSubmit,
   onCancel,
   isSubmitting,
+  error,
 }: IssueFormProps) {
   const { data: tags = [] } = useQuery({
     queryKey: ["tags"],
@@ -174,6 +176,12 @@ export function IssueForm({
           placeholder="https://example.com/cover.jpg"
         />
       </div>
+
+      {error && (
+        <div className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          {error}
+        </div>
+      )}
 
       <div className="flex gap-2">
         <Button type="submit" disabled={isSubmitting}>

@@ -8,6 +8,7 @@ export interface IssueFilterBarProps {
   search: string;
   year: string;
   years: number[];
+  hasActiveFilters: boolean;
   onSearchChange: (value: string) => void;
   onYearChange: (value: string) => void;
   onClear: () => void;
@@ -17,11 +18,11 @@ export function IssueFilterBar({
   search,
   year,
   years,
+  hasActiveFilters,
   onSearchChange,
   onYearChange,
   onClear,
 }: IssueFilterBarProps) {
-  const hasFilters = search !== "" || year !== "";
 
   return (
     <div className="mb-6 rounded-lg border bg-card p-4 shadow-sm">
@@ -61,7 +62,7 @@ export function IssueFilterBar({
           </Select>
         </div>
 
-        {hasFilters && (
+        {hasActiveFilters && (
           <Button
             variant="ghost"
             size="sm"

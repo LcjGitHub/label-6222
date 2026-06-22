@@ -30,31 +30,23 @@ export function IssueListPage() {
   const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
 
   useEffect(() => {
+    setSearchInput(searchQuery);
+    setDebouncedSearch(searchQuery);
+  }, [searchQuery]);
+
+  useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchInput);
+      const nextParams = new URLSearchParams(searchParams);
+      if (searchInput) {
+        nextParams.set("search", searchInput);
+      } else {
+        nextParams.delete("search");
+      }
+      setSearchParams(nextParams, { replace: true });
     }, 300);
     return () => clearTimeout(timer);
   }, [searchInput]);
-
-  useEffect(() => {
-    const nextParams = new URLSearchParams(searchParams);
-    if (debouncedSearch) {
-      nextParams.set("search", debouncedSearch);
-    } else {
-      nextParams.delete("search");
-    }
-    if (yearQuery) {
-      nextParams.set("year", yearQuery);
-    } else {
-      nextParams.delete("year");
-    }
-    if (designerFilter) {
-      nextParams.set("designer", designerFilter);
-    } else {
-      nextParams.delete("designer");
-    }
-    setSearchParams(nextParams, { replace: true });
-  }, [debouncedSearch, yearQuery, designerFilter]);
 
   const { data: years = [] } = useQuery({
     queryKey: ["issue-years"],
@@ -73,6 +65,8 @@ export function IssueListPage() {
 
   const hasActiveFilters =
     debouncedSearch !== "" || yearQuery !== "" || designerFilter !== "";
+  const isOnlyDesignerFilter =
+    designerFilter !== "" && debouncedSearch === "" && yearQuery === "";
 
   const handleSearchChange = (value: string) => {
     setSearchInput(value);
@@ -138,7 +132,7 @@ export function IssueListPage() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setSearchParams({})}
+                onClick={handleClearFilters}
               >
                 清除筛选
               </Button>
@@ -163,6 +157,7 @@ export function IssueListPage() {
         search={searchInput}
         year={yearQuery}
         years={years}
+        hasActiveFilters={hasActiveFilters}
         onSearchChange={handleSearchChange}
         onYearChange={handleYearChange}
         onClear={handleClearFilters}
@@ -205,9 +200,11 @@ export function IssueListPage() {
               {hasActiveFilters ? "未找到匹配的结果" : "暂无数据"}
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              {hasActiveFilters
-                ? "尝试更换关键词、调整年份筛选或清除筛选条件"
-                : "点击上方「新增期号」按钮开始收录"}
+              {isOnlyDesignerFilter
+                ? `「${designerFilter}」暂无收录期号，可点击清除筛选查看全部`
+                : hasActiveFilters
+                  ? "尝试更换关键词、调整年份筛选或清除筛选条件"
+                  : "点击上方「新增期号」按钮开始收录"}
             </p>
           </div>
           {hasActiveFilters && (

@@ -1,0 +1,39 @@
+"""SQLite 数据库初始化与连接管理。"""
+
+import sqlite3
+from pathlib import Path
+
+DB_PATH = Path(__file__).parent.parent / "data" / "magazine.db"
+
+
+def get_connection() -> sqlite3.Connection:
+    """
+     * 获取 SQLite 连接，启用 Row 工厂以便按列名访问。
+     * @returns {sqlite3.Connection}
+     """
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
+    return conn
+
+
+def init_db() -> None:
+    """创建 issues 表（若不存在）。"""
+    with get_connection() as conn:
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS issues (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                magazine_name TEXT NOT NULL,
+                issue_number TEXT NOT NULL,
+                year INTEGER NOT NULL,
+                font_description TEXT NOT NULL,
+                designer TEXT NOT NULL,
+                link TEXT,
+                created_at TEXT DEFAULT (datetime('now')),
+                updated_at TEXT DEFAULT (datetime('now'))
+            )
+            """
+        )
+        conn.commit()
